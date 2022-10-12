@@ -23,4 +23,28 @@ a {
     color: white;
     background: black;
   }
+  html,
+  body,
+  body > div:first-child,
+  div#__next,
+  div#__next > div {
+    height: 100%;
+  }
 }
+
+.layoutLink {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0px 20px 0px;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  column-gap: 10px;
+}
+
+.appMain {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+
