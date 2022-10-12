@@ -1,24 +1,22 @@
 import { DeleteFilled } from "@ant-design/icons";
-import React, { useContext } from "react";
-import { v4 as uuidv4 } from "uuid";
-import { firebaseDb, firebaseAuth } from "../firebase/firebase-config";
-import GoogleButton from "react-google-button";
 import {
-  collection,
-  getDocs,
   addDoc,
-  updateDoc,
-  doc,
+  collection,
   deleteDoc,
+  doc, getDocs,
+  updateDoc
 } from "firebase/firestore";
+import React, { useContext } from "react";
+import GoogleButton from "react-google-button";
 import { AuthContext } from "../firebase/AuthContext";
-import { useRouter } from "next/router";
+import { firebaseDb } from "../firebase/firebase-config";
 
 class TodoItem {
   id?: string;
   constructor(
     public label: string,
     public isDone: boolean,
+    public owner: string
   ) {}
 }
 
@@ -27,20 +25,25 @@ const Todo = () => {
   const [todos, setTodos] = React.useState<TodoItem[]>([]);
 
   const todosCollectionRef = collection(firebaseDb, "todoItems");
+
+  const { user, googleSignIn, googleSignOut } = useContext(AuthContext);
+
   const getTodos = async () => {
     const data = await getDocs(todosCollectionRef);
-    const todosData = data.docs.map((doc) => {
-      const document = doc.data() as TodoItem;
-      return {
-        ...doc.data(),
-        id: doc.id,
-        label: document.label,
-        isDone: document.isDone,
-      };
-    });
+    const todosData = data.docs
+      .filter((f) => (f.data() as TodoItem).owner === user?.email)
+      .map((doc) => {
+        const document = doc.data() as TodoItem;
+        return {
+          ...doc.data(),
+          id: doc.id,
+          label: document.label,
+          isDone: document.isDone,
+          owner: document.owner,
+        };
+      });
     setTodos(todosData);
   };
-  const { user, googleSignIn, googleSignOut } = useContext(AuthContext);
 
   React.useEffect(() => {
     user && getTodos();
@@ -80,7 +83,10 @@ const Todo = () => {
     },
     onAddTodo: async () => {
       setNewTodo("");
-      await addDoc(todosCollectionRef, { ...new TodoItem(newTodo, false) });
+      user?.email &&
+        (await addDoc(todosCollectionRef, {
+          ...new TodoItem(newTodo, false, user.email),
+        }));
       getTodos();
     },
     onSetIsDone: async (id: string, isDone: boolean) => {
@@ -114,7 +120,7 @@ const Todo = () => {
       </div>
       {todos.map((m) => (
         <ListItem
-          item={{ id: m.id, label: m.label, isDone: m.isDone }}
+          item={{ id: m.id, label: m.label, isDone: m.isDone, owner: m.owner }}
           onClick={(id, isDone) => eHandlers.onSetIsDone(id, isDone)}
           onDelete={(id) => eHandlers.onDelete(id)}
         />

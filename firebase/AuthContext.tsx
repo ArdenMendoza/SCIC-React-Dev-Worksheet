@@ -2,22 +2,31 @@ import React, { useContext, createContext } from "react";
 import {
   GoogleAuthProvider,
   signInWithPopup,
-  signInWithRedirect,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
 import { firebaseAuth } from "./firebase-config";
-import { createSecureServer } from "http2";
 
-export const AuthContext = createContext({
-  //   isAuthenticated: false,
-  user: undefined,
-  googleSignIn: () => {},
-  googleSignOut: () => {},
-});
+export class User {
+  constructor(public email: string, public displayName: string) {}
+}
+class AuthContextModel {
+  user?: User;
+  constructor(
+    public googleSignIn: () => void,
+    public googleSignOut: () => void
+  ) {}
+}
+
+export const AuthContext = createContext(
+  new AuthContextModel(
+    () => {},
+    () => {}
+  )
+);
 
 export const AuthContextProvider = (props: { children: JSX.Element }) => {
-  const [user, setUser] = React.useState<any>();
+  const [user, setUser] = React.useState<User>();
   const eHandlers = {
     googleSignIn: async () => {
       const googleAuthProvider = new GoogleAuthProvider();
@@ -25,7 +34,14 @@ export const AuthContextProvider = (props: { children: JSX.Element }) => {
         firebaseAuth,
         googleAuthProvider
       ).then((res) => res);
-      authResponse.user && setUser(authResponse.user);
+      authResponse.user &&
+        setUser(
+          new User(
+            authResponse.user?.email ?? "",
+            authResponse.user?.displayName ?? ""
+          )
+        );
+      console.log(authResponse.user);
       return authResponse;
     },
     googleSignOut: async () => {
@@ -34,12 +50,12 @@ export const AuthContextProvider = (props: { children: JSX.Element }) => {
     },
   };
 
-  React.useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser) => {
-      setUser(currentUser);
-    });
-    unsubscribe();
-  }, []);
+  // React.useEffect(() => {
+  //   const unsubscribe = onAuthStateChanged(firebaseAuth, (currentUser) => {
+  //     setUser(new User(currentUser?.email, currentUser?.displayName));
+  //   });
+  //   unsubscribe();
+  // }, []);
 
   return (
     <AuthContext.Provider
