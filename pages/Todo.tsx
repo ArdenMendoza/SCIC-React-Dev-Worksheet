@@ -1,21 +1,25 @@
 import { DeleteFilled } from "@ant-design/icons";
-import React from "react";
+import React, { useContext } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { firebaseDb } from "../firebase/firebase-config";
+import { firebaseDb, firebaseAuth } from "../firebase/firebase-config";
+import GoogleButton from "react-google-button";
 import {
   collection,
   getDocs,
   addDoc,
   updateDoc,
   doc,
-  deleteDoc
+  deleteDoc,
 } from "firebase/firestore";
+import { AuthContext } from "../firebase/AuthContext";
+import { useRouter } from "next/router";
 
 class TodoItem {
-  id: string;
-  constructor(public label: string, public isDone: boolean) {
-    this.id = uuidv4();
-  }
+  id?: string;
+  constructor(
+    public label: string,
+    public isDone: boolean,
+  ) {}
 }
 
 const Todo = () => {
@@ -36,10 +40,11 @@ const Todo = () => {
     });
     setTodos(todosData);
   };
+  const { user, googleSignIn, googleSignOut } = useContext(AuthContext);
 
   React.useEffect(() => {
-    getTodos();
-  }, []);
+    user && getTodos();
+  }, [user]);
 
   const styles = {
     inputContainer: {
@@ -48,10 +53,33 @@ const Todo = () => {
     } as React.CSSProperties,
     todoInputBox: { marginRight: 5, fontSize: 20 } as React.CSSProperties,
     addBtn: { fontSize: 14, padding: 5 } as React.CSSProperties,
+    centerAlign: {
+      margin: "20px 0px 20px 0px",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      columnGap: 10,
+    } as React.CSSProperties,
   };
 
   const eHandlers = {
+    handleGoogleSignin: async () => {
+      try {
+        const signInResponse = await googleSignIn();
+        console.log((signInResponse as any).user);
+      } catch (error) {
+        console.log({ error });
+      }
+    },
+    handleGoogleSignOut: async () => {
+      try {
+        await googleSignOut();
+      } catch (error) {
+        console.log({ error });
+      }
+    },
     onAddTodo: async () => {
+      setNewTodo("");
       await addDoc(todosCollectionRef, { ...new TodoItem(newTodo, false) });
       getTodos();
     },
@@ -62,14 +90,17 @@ const Todo = () => {
       getTodos();
     },
     onDelete: async (id: string) => {
-      const todoItem = doc(firebaseDb, 'todoItems', id)
-      await deleteDoc(todoItem)
-      getTodos()
+      const todoItem = doc(firebaseDb, "todoItems", id);
+      await deleteDoc(todoItem);
+      getTodos();
     },
   };
 
-  return (
+  return user ? (
     <div>
+      <div style={styles.centerAlign}>
+        <div>{`Welcome ${(user as any).displayName}! `}</div>
+      </div>
       <div style={styles.inputContainer}>
         <input
           style={styles.todoInputBox}
@@ -88,6 +119,16 @@ const Todo = () => {
           onDelete={(id) => eHandlers.onDelete(id)}
         />
       ))}
+      <div style={styles.centerAlign}>
+        <button style={styles.addBtn} onClick={eHandlers.handleGoogleSignOut}>
+          {"Sign Out"}
+        </button>
+      </div>
+    </div>
+  ) : (
+    <div style={{ display: "flex", flexDirection: "column", rowGap: 20 }}>
+      <div>{"Login to start using Todo List App"}</div>
+      <GoogleButton onClick={eHandlers.handleGoogleSignin} />
     </div>
   );
 };
@@ -117,11 +158,11 @@ const ListItem = (props: {
         <input
           type={"checkbox"}
           checked={isDone}
-          onChange={(e) => onClick(id, e.currentTarget.checked)}
+          onChange={(e) => id && onClick(id, e.currentTarget.checked)}
         />
         <span style={isDone ? styles.isDone : {}}>{label}</span>
       </div>
-      <DeleteFilled onClick={() => onDelete(id)} />
+      <DeleteFilled onClick={() => id && onDelete(id)} />
     </div>
   );
 };

@@ -1,7 +1,10 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React from "react";
+import { AuthContextProvider } from "../firebase/AuthContext";
 
 const Layout = (props: { children: any }) => {
+  const router = useRouter();
   const pages = [
     { title: "Hello World App", url: "/" },
     { title: "Counter App", url: "/Counter" },
@@ -9,17 +12,22 @@ const Layout = (props: { children: any }) => {
     { title: "Stop Button", url: "/StopButton" },
     { title: "Todo List", url: "/Todo" },
   ];
+
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
-      <div className={"layoutLink"}>
-        {pages.map((m) => (
-          <Link href={m.url}>
-            <a>{m.title}</a>
-          </Link>
-        ))}
+    <AuthContextProvider>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        <div className={"layoutLink"}>
+          {pages.map((m) => (
+            <Link href={m.url}>
+              <a style={router.pathname === m.url ? { color: "yellow" } : {}}>
+                {m.title}
+              </a>
+            </Link>
+          ))}
+        </div>
+        <div className={"appMain"}>{props.children}</div>
       </div>
-      <div className={'appMain'}>{props.children}</div>
-    </div>
+    </AuthContextProvider>
   );
 };
 
