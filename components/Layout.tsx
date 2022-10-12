@@ -6,6 +6,7 @@ const Layout = (props: { children: any }) => {
     { title: "Hello World App", url: "/" },
     { title: "Counter App", url: "/Counter" },
     { title: "Calculator App", url: "/Calculator" },
+    { title: "Stop Button", url: "/StopButton" },
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column" }}>
