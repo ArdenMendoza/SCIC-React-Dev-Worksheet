@@ -1,10 +1,19 @@
 import { DeleteFilled } from "@ant-design/icons";
 import React from "react";
 import { v4 as uuidv4 } from "uuid";
+import { firebaseDb } from "../firebase/firebase-config";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  doc,
+  deleteDoc
+} from "firebase/firestore";
 
 class TodoItem {
   id: string;
-  constructor(public label: string, public isDone?: boolean) {
+  constructor(public label: string, public isDone: boolean) {
     this.id = uuidv4();
   }
 }
@@ -12,6 +21,25 @@ class TodoItem {
 const Todo = () => {
   const [newTodo, setNewTodo] = React.useState("");
   const [todos, setTodos] = React.useState<TodoItem[]>([]);
+
+  const todosCollectionRef = collection(firebaseDb, "todoItems");
+  const getTodos = async () => {
+    const data = await getDocs(todosCollectionRef);
+    const todosData = data.docs.map((doc) => {
+      const document = doc.data() as TodoItem;
+      return {
+        ...doc.data(),
+        id: doc.id,
+        label: document.label,
+        isDone: document.isDone,
+      };
+    });
+    setTodos(todosData);
+  };
+
+  React.useEffect(() => {
+    getTodos();
+  }, []);
 
   const styles = {
     inputContainer: {
@@ -23,22 +51,20 @@ const Todo = () => {
   };
 
   const eHandlers = {
-    onAddTodo: () => {
-      setNewTodo("");
-      setTodos([...todos, new TodoItem(newTodo)]);
+    onAddTodo: async () => {
+      await addDoc(todosCollectionRef, { ...new TodoItem(newTodo, false) });
+      getTodos();
     },
-    onSetIsDone: (id: string, isDone: boolean) => {
-      setTodos(
-        todos.map((m) => {
-          if (m.id === id) {
-            m.isDone = isDone;
-          }
-          return m;
-        })
-      );
+    onSetIsDone: async (id: string, isDone: boolean) => {
+      const newFields = { isDone };
+      const todoItem = doc(firebaseDb, "todoItems", id);
+      await updateDoc(todoItem, newFields);
+      getTodos();
     },
-    onDelete: (id: string) => {
-      setTodos(todos.filter((f) => f.id !== id));
+    onDelete: async (id: string) => {
+      const todoItem = doc(firebaseDb, 'todoItems', id)
+      await deleteDoc(todoItem)
+      getTodos()
     },
   };
 
