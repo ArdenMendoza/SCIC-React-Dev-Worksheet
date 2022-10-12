@@ -1,14 +1,17 @@
 import { DeleteFilled } from "@ant-design/icons";
+import { getCookie, hasCookie } from "cookies-next";
 import {
   addDoc,
   collection,
   deleteDoc,
-  doc, getDocs,
-  updateDoc
+  doc,
+  getDocs,
+  updateDoc,
 } from "firebase/firestore";
+import { useRouter } from "next/router";
 import React, { useContext } from "react";
 import GoogleButton from "react-google-button";
-import { AuthContext } from "../firebase/AuthContext";
+import { AuthContext, User } from "../firebase/AuthContext";
 import { firebaseDb } from "../firebase/firebase-config";
 
 class TodoItem {
@@ -21,12 +24,13 @@ class TodoItem {
 }
 
 const Todo = () => {
+  const [user, setUser] = React.useState<User | undefined>();
   const [newTodo, setNewTodo] = React.useState("");
   const [todos, setTodos] = React.useState<TodoItem[]>([]);
 
   const todosCollectionRef = collection(firebaseDb, "todoItems");
 
-  const { user, googleSignIn, googleSignOut } = useContext(AuthContext);
+  const { googleSignIn, googleSignOut } = useContext(AuthContext);
 
   const getTodos = async () => {
     const data = await getDocs(todosCollectionRef);
@@ -46,8 +50,15 @@ const Todo = () => {
   };
 
   React.useEffect(() => {
-    user && getTodos();
-  }, [user]);
+    const cookieData = {
+      email: getCookie("userEmail")?.toString(),
+      displayName: getCookie("userDisplayName")?.toString(),
+    };
+    if (cookieData.email && cookieData.displayName) {
+      setUser(new User(cookieData.email, cookieData.displayName));
+      getTodos();
+    }
+  }, []);
 
   const styles = {
     inputContainer: {
@@ -68,8 +79,8 @@ const Todo = () => {
   const eHandlers = {
     handleGoogleSignin: async () => {
       try {
-        const signInResponse = await googleSignIn();
-        console.log((signInResponse as any).user);
+        const signInResponse: User = await googleSignIn();
+        setUser(new User(signInResponse.email, signInResponse.displayName));
       } catch (error) {
         console.log({ error });
       }
@@ -77,6 +88,7 @@ const Todo = () => {
     handleGoogleSignOut: async () => {
       try {
         await googleSignOut();
+        setUser(undefined);
       } catch (error) {
         console.log({ error });
       }
@@ -105,7 +117,7 @@ const Todo = () => {
   return user ? (
     <div>
       <div style={styles.centerAlign}>
-        <div>{`Welcome ${(user as any).displayName}! `}</div>
+        <div>{`Welcome ${user.displayName}! `}</div>
       </div>
       <div style={styles.inputContainer}>
         <input
@@ -120,6 +132,7 @@ const Todo = () => {
       </div>
       {todos.map((m) => (
         <ListItem
+          key={m.id}
           item={{ id: m.id, label: m.label, isDone: m.isDone, owner: m.owner }}
           onClick={(id, isDone) => eHandlers.onSetIsDone(id, isDone)}
           onDelete={(id) => eHandlers.onDelete(id)}

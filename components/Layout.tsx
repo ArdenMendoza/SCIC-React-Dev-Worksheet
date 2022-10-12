@@ -18,7 +18,7 @@ const Layout = (props: { children: any }) => {
       <div style={{ display: "flex", flexDirection: "column" }}>
         <div className={"layoutLink"}>
           {pages.map((m) => (
-            <Link href={m.url}>
+            <Link key={m.url} href={m.url}>
               <a style={router.pathname === m.url ? { color: "yellow" } : {}}>
                 {m.title}
               </a>
