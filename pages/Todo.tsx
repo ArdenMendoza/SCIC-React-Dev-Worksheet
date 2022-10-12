@@ -97,10 +97,13 @@ const Todo = () => {
       }
     },
     onAddTodo: async () => {
+      if ([undefined, "", " "].includes(newTodo.trim())) {
+        return;
+      }
       setNewTodo("");
       user?.email &&
         (await addDoc(todosCollectionRef, {
-          ...new TodoItem(newTodo, false, user.email),
+          ...new TodoItem(newTodo.trim(), false, user.email),
         }));
       getTodos();
     },
