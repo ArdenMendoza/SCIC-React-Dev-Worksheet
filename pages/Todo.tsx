@@ -32,10 +32,10 @@ const Todo = () => {
 
   const { googleSignIn, googleSignOut } = useContext(AuthContext);
 
-  const getTodos = async () => {
+  const getTodos = async (email?: string) => {
     const data = await getDocs(todosCollectionRef);
     const todosData = data.docs
-      .filter((f) => (f.data() as TodoItem).owner === user?.email)
+      .filter((f) => (f.data() as TodoItem).owner === (email ?? user?.email))
       .map((doc) => {
         const document = doc.data() as TodoItem;
         return {
@@ -55,8 +55,8 @@ const Todo = () => {
       displayName: getCookie("userDisplayName")?.toString(),
     };
     if (cookieData.email && cookieData.displayName) {
+      getTodos(cookieData.email);
       setUser(new User(cookieData.email, cookieData.displayName));
-      getTodos();
     }
   }, []);
 
@@ -79,8 +79,11 @@ const Todo = () => {
   const eHandlers = {
     handleGoogleSignin: async () => {
       try {
-        const signInResponse: User = await googleSignIn();
-        setUser(new User(signInResponse.email, signInResponse.displayName));
+        const signInResponse = await googleSignIn();
+        setUser(
+          new User(signInResponse.user.email, signInResponse.user.displayName)
+        );
+        getTodos(signInResponse.user.email);
       } catch (error) {
         console.log({ error });
       }
