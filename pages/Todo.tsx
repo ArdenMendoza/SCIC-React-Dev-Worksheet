@@ -168,7 +168,7 @@ const ListItem = (props: {
       display: "flex",
       margin: "10px 0px 10px 0px",
     } as React.CSSProperties,
-    checkboxComponent: { flex: 1 } as React.CSSProperties,
+    checkboxComponent: { flex: 1, display: 'flex', columnGap: 5, alignItems: 'center' } as React.CSSProperties,
     isDone: { textDecoration: "line-through" } as React.CSSProperties,
   };
 
