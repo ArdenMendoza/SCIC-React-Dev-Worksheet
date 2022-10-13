@@ -11,6 +11,7 @@ const Layout = (props: { children: any }) => {
     { title: "Calculator App", url: "/Calculator" },
     { title: "Stop Button", url: "/StopButton" },
     { title: "Todo List", url: "/Todo" },
+    { title: "Pokemon List", url: "/PokeApi" },
   ];
 
   return (
@@ -19,7 +20,7 @@ const Layout = (props: { children: any }) => {
         <div className={"layoutLink"}>
           {pages.map((m) => (
             <Link key={m.url} href={m.url}>
-              <a style={router.pathname === m.url ? { color: "yellow" } : {}}>
+              <a style={router.pathname === m.url ? { color: "red" } : {}}>
                 {m.title}
               </a>
             </Link>
