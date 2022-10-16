@@ -2,6 +2,7 @@ import Image from "next/image";
 import React from "react";
 import { Card } from "antd";
 import Meta from "antd/lib/card/Meta";
+import { useQuery } from "react-query";
 
 class Pokemon {
   constructor(public name: string, public url: string) {}
@@ -17,20 +18,26 @@ class ApiResponse {
 }
 
 const PokeApi = () => {
+  const { isError, isSuccess, isLoading, data, error } = useQuery(
+    "pokemons",
+    async () => {
+      return await fetch("https://pokeapi.co/api/v2/pokemon").then((res) =>
+        res.json()
+      );
+    },
+    { staleTime: 60000 }
+  );
+
+  React.useEffect(
+    () =>
+      setApiResponse(
+        new ApiResponse(data.count, data.next, data.previous, data.results)
+      ),
+    [data]
+  );
   const [apiResponse, setApiResponse] = React.useState<
     ApiResponse | undefined
   >();
-
-  React.useEffect(() => {
-    const fetchPokemonData = async () => {
-      fetch("https://pokeapi.co/api/v2/pokemon")
-        .then((res) => res.json())
-        .then((res) => {
-          setApiResponse(res);
-        });
-    };
-    fetchPokemonData();
-  }, []);
 
   const styles = {
     mainContainer: {
@@ -39,9 +46,10 @@ const PokeApi = () => {
       flexWrap: "wrap",
       rowGap: 10,
       columnGap: 10,
-      justifyContent: 'center'
+      justifyContent: "center",
     } as React.CSSProperties,
   };
+  
   return (
     <div style={styles.mainContainer}>
       {apiResponse?.results

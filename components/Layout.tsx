@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import React from "react";
 import { AuthContextProvider } from "../firebase/AuthContext";
 
+
 const Layout = (props: { children: any }) => {
   const router = useRouter();
   const pages = [
