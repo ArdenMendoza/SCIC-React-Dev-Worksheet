@@ -1,4 +1,5 @@
 import React from "react";
+import { Button, Input } from "antd";
 
 const GuessingGame = () => {
   const getRandomNumber = () => Math.floor(Math.random() * 100);
@@ -38,12 +39,12 @@ const GuessingGame = () => {
       <div>{"Guessing Game"}</div>
       <div>{`Guess: ${number}`}</div>
       <div style={styles.inputContainer}>
-        <button onClick={eHandlers.onReset}>{"Restart Game"}</button>
-        <input
+        <Button onClick={eHandlers.onReset}>{"Restart Game"}</Button>
+        <Input
           type={"number"}
           value={guessNumber}
           onChange={(e) => eHandlers.onNumberChange(Number(e.target.value))}
-        ></input>
+        ></Input>
       </div>
       <div>{message}</div>
     </div>
