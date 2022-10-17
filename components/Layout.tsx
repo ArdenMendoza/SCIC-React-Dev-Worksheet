@@ -13,6 +13,7 @@ const Layout = (props: { children: any }) => {
     { title: "Stop Button", url: "/StopButton" },
     { title: "Todo List", url: "/Todo" },
     { title: "Pokemon List", url: "/PokeApi" },
+    { title: "Guessing Game", url: "/GuessingGame" },
   ];
 
   return (
