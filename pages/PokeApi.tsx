@@ -28,16 +28,18 @@ const PokeApi = () => {
     { staleTime: 60000 }
   );
 
+  const [apiResponse, setApiResponse] = React.useState<
+    ApiResponse | undefined
+  >();
+
   React.useEffect(
     () =>
+      data &&
       setApiResponse(
         new ApiResponse(data.count, data.next, data.previous, data.results)
       ),
     [data]
   );
-  const [apiResponse, setApiResponse] = React.useState<
-    ApiResponse | undefined
-  >();
 
   const styles = {
     mainContainer: {
@@ -49,7 +51,7 @@ const PokeApi = () => {
       justifyContent: "center",
     } as React.CSSProperties,
   };
-  
+
   return (
     <div style={styles.mainContainer}>
       {apiResponse?.results
